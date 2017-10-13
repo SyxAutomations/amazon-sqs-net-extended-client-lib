@@ -3,9 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Amazon.SQS.ExtendedClient", "Amazon.SQS.ExtendedClient\Amazon.SQS.ExtendedClient.csproj", "{87932D35-43E8-4321-BE2A-FD17C99330FA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "src", "src", "{6E0CBE79-695A-415E-B514-6B2A81BC67C6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Amazon.SQS.ExtendedClient.Tests", "Amazon.SQS.ExtendedClient.Tests\Amazon.SQS.ExtendedClient.Tests.csproj", "{A5B38649-722E-48D5-AB2A-002A0AAD2F00}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Amazon.SQS.ExtendedClient", "src\Amazon.SQS.ExtendedClient\Amazon.SQS.ExtendedClient.csproj", "{87932D35-43E8-4321-BE2A-FD17C99330FA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test", "test", "{56D5A643-C0C5-448F-8523-C3CC51E999DC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Amazon.SQS.ExtendedClient.Tests", "test\Amazon.SQS.ExtendedClient.Tests\Amazon.SQS.ExtendedClient.Tests.csproj", "{A5B38649-722E-48D5-AB2A-002A0AAD2F00}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,5 +28,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{87932D35-43E8-4321-BE2A-FD17C99330FA} = {6E0CBE79-695A-415E-B514-6B2A81BC67C6}
+		{A5B38649-722E-48D5-AB2A-002A0AAD2F00} = {56D5A643-C0C5-448F-8523-C3CC51E999DC}
 	EndGlobalSection
 EndGlobal

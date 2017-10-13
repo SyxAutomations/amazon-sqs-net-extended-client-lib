@@ -1,13 +1,14 @@
-﻿namespace Amazon.SQS.ExtendedClient.Tests
+﻿using Amazon.S3;
+using Amazon.SQS.Model;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Moq;
+using Newtonsoft.Json;
+using NUnit.Framework;
+
+namespace Amazon.SQS.ExtendedClient.Tests
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using Model;
-    using Moq;
-    using Newtonsoft.Json;
-    using NUnit.Framework;
-    using S3;
 
     public class ExtendedClientTestBase
     {

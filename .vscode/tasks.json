@@ -1,0 +1,27 @@
+{
+    "version": "0.1.0",
+    "command": "dotnet",
+    "isShellCommand": true,
+    "args": [],
+    "options": {
+        "cwd": "${workspaceRoot}/"
+    },
+    "tasks": [
+        {
+            "taskName": "build",
+            "args": [
+                "${workspaceRoot}/src/Amazon.SQS.ExtendedClient"
+            ],
+            "isBuildCommand": true,
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "taskName": "test",
+            "showOutput": "always",
+            "args": [
+                "${workspaceRoot}/test/Amazon.SQS.ExtendedClient.Tests"
+            ],
+            "isTestCommand": true
+        }
+    ]
+}
