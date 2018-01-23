@@ -203,6 +203,21 @@ namespace Amazon.SQS.ExtendedClient
             return amazonSqsToBeExtended.SetQueueAttributesAsync(request, cancellationToken);
         }
 
+        public Task<ListQueueTagsResponse> ListQueueTagsAsync(ListQueueTagsRequest request, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return amazonSqsToBeExtended.ListQueueTagsAsync(request, cancellationToken);
+        }
+
+        public Task<TagQueueResponse> TagQueueAsync(TagQueueRequest request, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return amazonSqsToBeExtended.TagQueueAsync(request, cancellationToken);
+        }
+
+        public Task<UntagQueueResponse> UntagQueueAsync(UntagQueueRequest request, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return amazonSqsToBeExtended.UntagQueueAsync(request, cancellationToken);
+        }
+
         public IClientConfig Config
         {
             get { return amazonSqsToBeExtended.Config; }
