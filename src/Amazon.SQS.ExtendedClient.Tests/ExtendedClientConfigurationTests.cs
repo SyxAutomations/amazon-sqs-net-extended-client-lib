@@ -1,14 +1,14 @@
-﻿namespace Amazon.SQS.ExtendedClient.Tests
-{
-    using Moq;
-    using NUnit.Framework;
-    using S3;
+﻿using Moq;
+using NUnit.Framework;
+using Amazon.S3;
 
+namespace Amazon.SQS.ExtendedClient.Tests
+{
     [TestFixture]
     public class ExtendedClientConfigurationTests
     {
         private readonly string s3BucketName = "test-s3-bucket";
-        
+
         [Test]
         public void TestLargePayloadSupportEnabled()
         {

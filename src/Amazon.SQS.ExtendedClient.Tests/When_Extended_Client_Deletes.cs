@@ -1,12 +1,12 @@
-﻿namespace Amazon.SQS.ExtendedClient.Tests
-{
-    using System;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Model;
-    using Moq;
-    using NUnit.Framework;
+﻿using Amazon.SQS.Model;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Moq;
+using NUnit.Framework;
 
+namespace Amazon.SQS.ExtendedClient.Tests
+{
     [TestFixture]
     public class When_Extended_Client_Deletes : ExtendedClientTestBase
     {

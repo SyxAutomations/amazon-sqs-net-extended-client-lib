@@ -1,4 +1,4 @@
-﻿namespace Amazon.SQS.ExtendedClient.Tests
+namespace Amazon.SQS.ExtendedClient.Tests
 {
     using System;
     using System.Collections.Generic;

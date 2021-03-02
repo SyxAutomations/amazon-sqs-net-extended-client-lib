@@ -1,0 +1,13 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+    "files.exclude": {
+        "**/*.dll": true,
+        "**/*.pdb": true,
+        "**/*.xproj": true,
+        "**/bin/": true,
+        "**/obj/": true,
+        "**/wrap/": true,
+        "**/.idea": true,
+        "**/.vs": true
+    }
+}
