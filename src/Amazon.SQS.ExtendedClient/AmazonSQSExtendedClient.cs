@@ -12,7 +12,7 @@
     using Runtime;
     using S3.Model;
 
-    public class AmazonSQSExtendedClient : AmazonSQSExtendedClientBase
+    public partial class AmazonSQSExtendedClient : AmazonSQSExtendedClientBase
     {
         private readonly ExtendedClientConfiguration clientConfiguration;
 
@@ -28,7 +28,7 @@
             clientConfiguration = configuration;
         }
 
-        public async override Task<SendMessageResponse> SendMessageAsync(SendMessageRequest sendMessageRequest, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<SendMessageResponse> SendMessageAsync(SendMessageRequest sendMessageRequest, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (sendMessageRequest == null)
             {
@@ -58,7 +58,7 @@
             return SendMessageAsync(new SendMessageRequest(queueUrl, messageBody), cancellationToken);
         }
 
-        public async override Task<SendMessageBatchResponse> SendMessageBatchAsync(SendMessageBatchRequest sendMessageBatchRequest, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<SendMessageBatchResponse> SendMessageBatchAsync(SendMessageBatchRequest sendMessageBatchRequest, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (sendMessageBatchRequest == null)
             {
@@ -86,7 +86,7 @@
             return SendMessageBatchAsync(new SendMessageBatchRequest(queueUrl, entries), cancellationToken);
         }
 
-        public async override Task<ReceiveMessageResponse> ReceiveMessageAsync(ReceiveMessageRequest receiveMessageRequest, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<ReceiveMessageResponse> ReceiveMessageAsync(ReceiveMessageRequest receiveMessageRequest, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (receiveMessageRequest == null)
             {
@@ -103,8 +103,7 @@
             var receiveMessageResult = await base.ReceiveMessageAsync(receiveMessageRequest, cancellationToken);
             foreach (var message in receiveMessageResult.Messages)
             {
-                MessageAttributeValue largePayloadAttributeValue;
-                if (message.MessageAttributes.TryGetValue(SQSExtendedClientConstants.RESERVED_ATTRIBUTE_NAME, out largePayloadAttributeValue))
+                if (message.MessageAttributes.TryGetValue(SQSExtendedClientConstants.RESERVED_ATTRIBUTE_NAME, out _))
                 {
                     var messageS3Pointer = ReadMessageS3PointerFromJson(message.Body);
                     var originalMessageBody = await GetTextFromS3Async(messageS3Pointer.S3BucketName, messageS3Pointer.S3Key, cancellationToken).ConfigureAwait(false);
@@ -122,7 +121,7 @@
             return ReceiveMessageAsync(new ReceiveMessageRequest(queueUrl), cancellationToken);
         }
 
-        public async override Task<DeleteMessageResponse> DeleteMessageAsync(DeleteMessageRequest deleteMessageRequest, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<DeleteMessageResponse> DeleteMessageAsync(DeleteMessageRequest deleteMessageRequest, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (deleteMessageRequest == null)
             {
@@ -152,7 +151,7 @@
             return DeleteMessageAsync(new DeleteMessageRequest(queueUrl, receiptHandle), cancellationToken);
         }
 
-        public async override Task<DeleteMessageBatchResponse> DeleteMessageBatchAsync(DeleteMessageBatchRequest deleteMessageBatchRequest, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<DeleteMessageBatchResponse> DeleteMessageBatchAsync(DeleteMessageBatchRequest deleteMessageBatchRequest, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (deleteMessageBatchRequest == null)
             {
@@ -217,7 +216,7 @@
 
         private bool IsLarge(SendMessageRequest sendMessageRequest)
         {
-            var contentSize = Encoding.UTF8.GetBytes(sendMessageRequest.MessageBody).Length; // Replaced LongLength as LongLength is only available from .net core 2.0
+            var contentSize = Encoding.UTF8.GetBytes(sendMessageRequest.MessageBody).LongCount();
             var attributesSize = GetAttributesSize(sendMessageRequest.MessageAttributes);
 
             return (contentSize + attributesSize > clientConfiguration.MessageSizeThreshold);
@@ -225,7 +224,7 @@
 
         private bool IsLarge(SendMessageBatchRequestEntry batchEntry)
         {
-            var contentSize = Encoding.UTF8.GetBytes(batchEntry.MessageBody).Length; // Replaced LongLength as LongLength is only available from .net core 2.0
+            var contentSize = Encoding.UTF8.GetBytes(batchEntry.MessageBody).LongCount();
             var attributesSize = GetAttributesSize(batchEntry.MessageAttributes);
 
             return (contentSize + attributesSize > clientConfiguration.MessageSizeThreshold);
@@ -280,32 +279,11 @@
                 throw new AmazonClientException(errorMessage);
             }
 
-            MessageAttributeValue largePayloadAttributeValue;
-            if (attributes.TryGetValue(SQSExtendedClientConstants.RESERVED_ATTRIBUTE_NAME, out largePayloadAttributeValue))
+            if (attributes.TryGetValue(SQSExtendedClientConstants.RESERVED_ATTRIBUTE_NAME, out _))
             {
                 var errorMessage = string.Format("Message attribute name {0}  is reserved for use by SQS extended client.", SQSExtendedClientConstants.RESERVED_ATTRIBUTE_NAME);
                 throw new AmazonClientException(errorMessage);
             }
-        }
-
-        private SendMessageBatchRequestEntry StoreMessageInS3(SendMessageBatchRequestEntry batchEntry)
-        {
-            CheckMessageAttributes(batchEntry.MessageAttributes);
-
-            var s3Key = clientConfiguration.S3KeyPovider.GenerateName();
-            var messageContentStr = batchEntry.MessageBody;
-            var messageContentSize = Encoding.UTF8.GetBytes(messageContentStr).Length; // Replaced LongLength as LongLength is only available from .net core 2.0
-
-            var messageAttributeValue = new MessageAttributeValue { DataType = "Number", StringValue = messageContentSize.ToString() };
-
-            batchEntry.MessageAttributes.Add(SQSExtendedClientConstants.RESERVED_ATTRIBUTE_NAME, messageAttributeValue);
-            var s3Pointer = new MessageS3Pointer(clientConfiguration.S3BucketName, s3Key);
-
-            StoreTextInS3(s3Key, messageContentStr);
-
-            batchEntry.MessageBody = GetJsonFromS3Pointer(s3Pointer);
-
-            return batchEntry;
         }
 
         private async Task<SendMessageBatchRequestEntry> StoreMessageInS3Async(SendMessageBatchRequestEntry batchEntry, CancellationToken cancellationToken = default(CancellationToken))
@@ -314,7 +292,7 @@
 
             var s3Key = clientConfiguration.S3KeyPovider.GenerateName();
             var messageContentStr = batchEntry.MessageBody;
-            var messageContentSize = Encoding.UTF8.GetBytes(messageContentStr).Length; // Replaced LongLength as LongLength is only available from .net core 2.0
+            var messageContentSize = Encoding.UTF8.GetBytes(messageContentStr).LongCount();
 
             var messageAttributeValue = new MessageAttributeValue { DataType = "Number", StringValue = messageContentSize.ToString() };
 
@@ -328,33 +306,13 @@
             return batchEntry;
         }
 
-        private SendMessageRequest StoreMessageInS3(SendMessageRequest sendMessageRequest)
-        {
-            CheckMessageAttributes(sendMessageRequest.MessageAttributes);
-
-            var s3Key = clientConfiguration.S3KeyPovider.GenerateName();
-            var messageContentStr = sendMessageRequest.MessageBody;
-            var messageContentSize = Encoding.UTF8.GetBytes(messageContentStr).Length; // Replaced LongLength as LongLength is only available from .net core 2.0
-
-            var messageAttributeValue = new MessageAttributeValue { DataType = "Number", StringValue = messageContentSize.ToString() };
-
-            sendMessageRequest.MessageAttributes.Add(SQSExtendedClientConstants.RESERVED_ATTRIBUTE_NAME, messageAttributeValue);
-            var s3Pointer = new MessageS3Pointer(clientConfiguration.S3BucketName, s3Key);
-
-            StoreTextInS3(s3Key, messageContentStr);
-
-            sendMessageRequest.MessageBody = GetJsonFromS3Pointer(s3Pointer);
-
-            return sendMessageRequest;
-        }
-
         private async Task<SendMessageRequest> StoreMessageInS3Async(SendMessageRequest sendMessageRequest, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckMessageAttributes(sendMessageRequest.MessageAttributes);
 
             var s3Key = clientConfiguration.S3KeyPovider.GenerateName();
             var messageContentStr = sendMessageRequest.MessageBody;
-            var messageContentSize = Encoding.UTF8.GetBytes(messageContentStr).Length; // Replaced LongLength as LongLength is only available from .net core 2.0
+            var messageContentSize = Encoding.UTF8.GetBytes(messageContentStr).LongCount();
 
             var messageAttributeValue = new MessageAttributeValue { DataType = "Number", StringValue = messageContentSize.ToString() };
 
@@ -366,25 +324,6 @@
             sendMessageRequest.MessageBody = GetJsonFromS3Pointer(s3Pointer);
 
             return sendMessageRequest;
-        }
-
-        private void DeleteMessagePayloadFromS3(string receiptHandle)
-        {
-            var s3BucketName = GetValueFromReceiptHandleByMarker(receiptHandle, SQSExtendedClientConstants.S3_BUCKET_NAME_MARKER);
-            var s3Key = GetValueFromReceiptHandleByMarker(receiptHandle, SQSExtendedClientConstants.S3_KEY_MARKER);
-
-            try
-            {
-                clientConfiguration.S3.DeleteObjectAsync(s3BucketName, s3Key);
-            }
-            catch (AmazonServiceException e)
-            {
-                throw new AmazonClientException("Failed to delete the S3 object which contains the SQS message payload. SQS message was not deleted.", e);
-            }
-            catch (AmazonClientException e)
-            {
-                throw new AmazonClientException("Failed to delete the S3 object which contains the SQS message payload. SQS message was not deleted.", e);
-            }
         }
 
         private async Task DeleteMessagePayloadFromS3Async(string receiptHandle, CancellationToken cancellationToken = default(CancellationToken))
@@ -406,22 +345,6 @@
             }
         }
 
-        private void StoreTextInS3(string s3Key, string messageContent)
-        {
-            try
-            {
-                clientConfiguration.S3.PutObjectAsync(new PutObjectRequest { BucketName = clientConfiguration.S3BucketName, Key = s3Key, ContentBody = messageContent });
-            }
-            catch (AmazonServiceException e)
-            {
-                throw new Exception("Failed to store the message content in an S3 object. SQS message was not sent.", e);
-            }
-            catch (AmazonClientException e)
-            {
-                throw new Exception("Failed to store the message content in an S3 object. SQS message was not sent.", e);
-            }
-        }
-
         private async Task StoreTextInS3Async(string s3Key, string messageContent, CancellationToken cancellationToken = default(CancellationToken))
         {
             try
@@ -430,33 +353,11 @@
             }
             catch (AmazonServiceException e)
             {
-                throw new Exception("Failed to store the message content in an S3 object. SQS message was not sent.", e);
+                throw new AmazonClientException("Failed to store the message content in an S3 object. SQS message was not sent.", e);
             }
             catch (AmazonClientException e)
             {
-                throw new Exception("Failed to store the message content in an S3 object. SQS message was not sent.", e);
-            }
-        }
-
-        private string GetTextFromS3(string s3BucketName, string s3Key)
-        {
-            var getObjectRequest = new GetObjectRequest { BucketName = s3BucketName, Key = s3Key };
-            try
-            {
-                using (var getObjectResponse = clientConfiguration.S3.GetObjectAsync(getObjectRequest).Result)
-                {
-                    var streamReader = new StreamReader(getObjectResponse.ResponseStream);
-                    var text = streamReader.ReadToEnd();
-                    return text;
-                }
-            }
-            catch (AmazonServiceException e)
-            {
-                throw new AmazonClientException("Failed to get the S3 object which contains the message payload. Message was not received.", e);
-            }
-            catch (AmazonClientException e)
-            {
-                throw new AmazonClientException("Failed to get the S3 object which contains the message payload. Message was not received.", e);
+                throw new AmazonClientException("Failed to store the message content in an S3 object. SQS message was not sent.", e);
             }
         }
 
