@@ -37,7 +37,7 @@ jobs:
 
     # Execute all unit tests in the solution
     - name: Execute unit tests
-      run: dotnet test \src\Amazon.SQS.ExtendedClient.Tests\
+      run: dotnet test .\src\Amazon.SQS.ExtendedClient.Tests\
 
     # Restore the application to populate the obj folder with RuntimeIdentifiers
     - name: Restore the application
